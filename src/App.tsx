@@ -1,8 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Login } from "./component/Login/Login";
-import Home from "./component/Home/Home"; // Asegúrate de que la ruta al archivo Home sea correcta
-import { CreateAccount } from "./component/CreateAccount/CreateAccount";
-
+import { Login } from "./component/Login";
+import{Home}from "./component/Home"
+import { CreateAccount } from "./component/CreateAccount";
 function App() {
   return (
     <Router>
