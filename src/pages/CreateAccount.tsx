@@ -1,31 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  FiUser,
-  FiLock,
-  FiArrowRight,
-  FiShield,
-  FiCheckCircle,
-} from "react-icons/fi";
+import { FiUser, FiLock, FiArrowRight, FiShield, FiCheckCircle } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
+import { validateName, validatePassword } from "../utils/validators";
 
 export const CreateAccount: React.FC = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
-    if (name && password) {
-      const newUser = { name, password };
-      localStorage.setItem("user_data", JSON.stringify(newUser));
+    const nameErr = validateName(name);
+    if (nameErr) return setError(nameErr);
+    const passErr = validatePassword(password);
+    if (passErr) return setError(passErr);
 
-      alert("Cuenta creada con éxito. Ahora puedes loguearte.");
-      navigate("/");
-    } else {
-      alert("Completa todos los campos");
-    }
+    register(name, password);
+    navigate("/");
   };
 
   return (
@@ -43,16 +40,12 @@ export const CreateAccount: React.FC = () => {
             <FiShield className="text-2xl text-white" />
           </div>
           <h2 className="text-3xl font-bold">Crear cuenta</h2>
-          <p className="mt-2 text-sm text-slate-300">
-            Regístrate para comenzar a construir hábitos
-          </p>
+          <p className="mt-2 text-sm text-slate-300">Regístrate para comenzar a construir hábitos</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">
-              Nombre
-            </label>
+            <label className="mb-2 block text-sm font-medium text-slate-200">Nombre</label>
             <div className="relative">
               <FiUser className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -66,9 +59,7 @@ export const CreateAccount: React.FC = () => {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">
-              Contraseña
-            </label>
+            <label className="mb-2 block text-sm font-medium text-slate-200">Contraseña</label>
             <div className="relative">
               <FiLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -80,6 +71,12 @@ export const CreateAccount: React.FC = () => {
               />
             </div>
           </div>
+
+          {error && (
+            <p className="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl px-4 py-2.5">
+              {error}
+            </p>
+          )}
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
             <div className="mb-2 flex items-center gap-2 text-slate-100">
@@ -95,17 +92,13 @@ export const CreateAccount: React.FC = () => {
             type="submit"
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-cyan-500 py-3.5 font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:from-violet-400 hover:to-cyan-400"
           >
-            Registrar cuenta
-            <FiArrowRight />
+            Registrar cuenta <FiArrowRight />
           </motion.button>
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-300">
           ¿Ya tienes cuenta?{" "}
-          <Link
-            to="/"
-            className="font-semibold text-cyan-400 transition hover:text-cyan-300"
-          >
+          <Link to="/" className="font-semibold text-cyan-400 transition hover:text-cyan-300">
             Volver al login
           </Link>
         </div>
