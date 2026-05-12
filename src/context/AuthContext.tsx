@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 interface UserData {
@@ -7,9 +7,9 @@ interface UserData {
 }
 
 interface AuthContextType {
-  userData: UserData | null;
+  currentUser: UserData | null;
   isLoggedIn: boolean;
-  register: (name: string, password: string) => void;
+  register: (name: string, password: string) => boolean;
   login: (name: string, password: string) => boolean;
   logout: () => void;
 }
@@ -17,29 +17,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-const [userData, setUserData] = useLocalStorage<UserData | null>("user_data", null);
-  const [isLoggedIn, setIsLoggedIn, removeIsLoggedIn] = useLocalStorage<boolean>("isLoggedIn", false);
+  //  Array de usuarios 
+  const [users, setUsers] = useLocalStorage<UserData[]>("users", []);
+  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>("isLoggedIn", false);
+  const [currentUser, setCurrentUser] = useLocalStorage<UserData | null>("currentUser", null);
 
-  const register = (name: string, password: string) => {
-    setUserData({ name, password });
+  const register = (name: string, password: string): boolean => {
+    // Verificar si el usuario ya existe
+    const exists = users.some((u) => u.name.toLowerCase() === name.toLowerCase());
+    if (exists) return false;
+
+    setUsers([...users, { name, password }]);
+    return true;
   };
 
   const login = (name: string, password: string): boolean => {
-    if (!userData) return false;
-    if (userData.name === name && userData.password === password) {
-      setIsLoggedIn(true);
-      return true;
-    }
-    return false;
+    const found = users.find(
+      (u) => u.name.toLowerCase() === name.toLowerCase() && u.password === password
+    );
+    if (!found) return false;
+
+    setCurrentUser(found);
+    setIsLoggedIn(true);
+    return true;
   };
 
   const logout = () => {
-    removeIsLoggedIn();
+    setCurrentUser(null);
     setIsLoggedIn(false);
   };
 
   return (
-    <AuthContext.Provider value={{ userData, isLoggedIn, register, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, isLoggedIn, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

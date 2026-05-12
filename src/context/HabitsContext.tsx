@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { getTodayString, getNextColor } from "../utils/helpers";
-
+import { useAuth } from "./AuthContext";
 export interface Habit {
   id: number;
   name: string;
@@ -26,6 +26,9 @@ interface HabitsContextType {
 const HabitsContext = createContext<HabitsContextType | null>(null);
 
 export const HabitsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUser } = useAuth();
+
+  const habitsKey = currentUser ? `habits_${currentUser.name}` : "habits_guest";
   const [habits, setHabits] = useLocalStorage<Habit[]>("habits", []);
 
   const TODAY = getTodayString();

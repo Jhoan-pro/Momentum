@@ -21,7 +21,10 @@ export const CreateAccount: React.FC = () => {
     const passErr = validatePassword(password);
     if (passErr) return setError(passErr);
 
-    register(name, password);
+  
+    const ok = register(name, password);
+    if (!ok) return setError("Ya existe una cuenta con ese nombre.");
+
     navigate("/");
   };
 

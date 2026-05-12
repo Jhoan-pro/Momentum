@@ -11,7 +11,7 @@ export const Login: React.FC = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login, userData } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -23,13 +23,11 @@ export const Login: React.FC = () => {
     const passErr = validatePassword(password);
     if (passErr) return setError(passErr);
 
-    if (!userData) return setError("No existe ninguna cuenta. Por favor crea una.");
-
     const ok = login(name, password);
     if (ok) {
       navigate("/home");
     } else {
-      setError("Usuario o contraseña incorrectos.");
+      setError("Usuario o contraseña incorrectos. Si no tienes cuenta, crea una.");
     }
   };
 
@@ -93,7 +91,9 @@ export const Login: React.FC = () => {
               <FiTarget className="text-2xl text-white" />
             </div>
             <h2 className="text-3xl font-bold">Bienvenido de nuevo</h2>
-            <p className="mt-2 text-sm text-slate-300">Inicia sesión para continuar con tus hábitos</p>
+            <p className="mt-2 text-sm text-slate-300">
+              Inicia sesión para continuar con tus hábitos
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

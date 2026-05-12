@@ -20,7 +20,7 @@ import { WeeklyCalendar } from "../components/WeeklyCalendar";
 
 
 export const Dashboard: React.FC = () => {
-  const { userData, logout } = useAuth();
+  const { currentUser, logout } = useAuth();
   const { habits, addHabit, deleteHabit, editHabit, toggleHabit, completedToday, maxStreak, weeklyRate } = useHabits();
 
   const [showInput, setShowInput] = useState(false);
@@ -30,7 +30,7 @@ export const Dashboard: React.FC = () => {
   const [editingName, setEditingName] = useState("");
 
   const navigate = useNavigate();
-  const firstName = userData?.name?.split(" ")[0] ?? "Usuario";
+  const firstName = currentUser?.name?.split(" ")[0] ?? "Usuario";
 
   //  lanzar el confeti
   const isAllCompleted = habits.length > 0 && completedToday === habits.length;
