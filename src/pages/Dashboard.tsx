@@ -26,7 +26,7 @@ export const Dashboard: React.FC = () => {
   const [showInput, setShowInput] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
   const [inputError, setInputError] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState < number | null > (null);
   const [editingName, setEditingName] = useState("");
 
   const navigate = useNavigate();
@@ -65,11 +65,10 @@ export const Dashboard: React.FC = () => {
 
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
   const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } };
-
+  // confeti cayendo sobre toda la pantalla si se llega al 100%
   return (
     <div className="min-h-screen bg-[#07111f] text-white relative overflow-hidden">
-      
-      // confeti cayendo sobre toda la pantalla si se llega al 100% 
+
       {isAllCompleted && (
         <div className="fixed inset-0 z-50 pointer-events-none">
           <Confetti recycle={false} numberOfPieces={400} gravity={0.15} />
@@ -102,8 +101,8 @@ export const Dashboard: React.FC = () => {
               {habits.length === 0
                 ? "Agrega tu primer hábito para comenzar"
                 : completedToday === habits.length
-                ? "¡Completaste todos tus hábitos hoy! 🎉"
-                : `Te faltan ${habits.length - completedToday} hábito${habits.length - completedToday !== 1 ? "s" : ""} por hoy`}
+                  ? "¡Completaste todos tus hábitos hoy! 🎉"
+                  : `Te faltan ${habits.length - completedToday} hábito${habits.length - completedToday !== 1 ? "s" : ""} por hoy`}
             </p>
           </div>
 
@@ -138,7 +137,7 @@ export const Dashboard: React.FC = () => {
         </motion.div>
 
         {/* Mini-calendario debajo de las estadísticas */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -302,10 +301,10 @@ export const Dashboard: React.FC = () => {
 
         {/* Coach IA */}
         {habits.length > 0 && (
-          <AiCoach 
-            completedToday={completedToday} 
-            totalHabits={habits.length} 
-            maxStreak={maxStreak} 
+          <AiCoach
+            completedToday={completedToday}
+            totalHabits={habits.length}
+            maxStreak={maxStreak}
           />
         )}
       </div>
