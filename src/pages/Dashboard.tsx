@@ -5,10 +5,19 @@ import {
   FiTarget, FiTrendingUp, FiCheckCircle, FiPlus, FiLogOut,
   FiZap, FiCircle, FiTrash2, FiEdit2, FiCheck, FiX,
 } from "react-icons/fi";
+
 import { useAuth } from "../context/AuthContext";
 import { useHabits } from "../context/HabitsContext";
 import { validateHabitName } from "../utils/validators";
 import { formatDateLong } from "../utils/helpers";
+
+
+
+import { AiCoach } from "../components/AiCoach";
+//  Confeti y el Calendario
+import Confetti from "react-confetti";
+import { WeeklyCalendar } from "../components/WeeklyCalendar";
+
 
 export const Dashboard: React.FC = () => {
   const { userData, logout } = useAuth();
@@ -22,6 +31,9 @@ export const Dashboard: React.FC = () => {
 
   const navigate = useNavigate();
   const firstName = userData?.name?.split(" ")[0] ?? "Usuario";
+
+  //  lanzar el confeti
+  const isAllCompleted = habits.length > 0 && completedToday === habits.length;
 
   const handleAddHabit = () => {
     const err = validateHabitName(newHabitName);
@@ -56,6 +68,14 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#07111f] text-white relative overflow-hidden">
+      
+      // confeti cayendo sobre toda la pantalla si se llega al 100% 
+      {isAllCompleted && (
+        <div className="fixed inset-0 z-50 pointer-events-none">
+          <Confetti recycle={false} numberOfPieces={400} gravity={0.15} />
+        </div>
+      )}
+
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(34,197,94,0.14),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(59,130,246,0.16),_transparent_25%),radial-gradient(circle_at_bottom,_rgba(139,92,246,0.18),_transparent_30%)]" />
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-8">
@@ -115,6 +135,16 @@ export const Dashboard: React.FC = () => {
               <div className="text-xs text-slate-400 mt-0.5">{stat.label}</div>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* Mini-calendario debajo de las estadísticas */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-6"
+        >
+          <WeeklyCalendar />
         </motion.div>
 
         {/* List header */}
@@ -270,17 +300,13 @@ export const Dashboard: React.FC = () => {
           </motion.button>
         )}
 
+        {/* Coach IA */}
         {habits.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-            className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md flex items-center gap-3"
-          >
-            <FiZap className="text-yellow-400 text-xl flex-shrink-0" />
-            <p className="text-xs text-slate-300 leading-relaxed">
-              <span className="text-white font-medium">Consejo: </span>
-              La consistencia supera a la perfección. Un hábito pequeño hecho todos los días vale más que uno grande hecho de vez en cuando.
-            </p>
-          </motion.div>
+          <AiCoach 
+            completedToday={completedToday} 
+            totalHabits={habits.length} 
+            maxStreak={maxStreak} 
+          />
         )}
       </div>
     </div>
