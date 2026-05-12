@@ -9,6 +9,7 @@ export interface Habit {
   completed: boolean;
   lastCompletedDate: string | null;
   color: string;
+  history?: string[]; //Guarda todas las fechas completadas
 }
 
 interface HabitsContextType {
@@ -39,6 +40,7 @@ export const HabitsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         completed: false,
         lastCompletedDate: null,
         color: getNextColor(prev.length),
+        history: [], // Inicia con historial vacío
       },
     ]);
   };
@@ -57,12 +59,21 @@ export const HabitsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setHabits((prev) =>
       prev.map((h) => {
         if (h.id !== id) return h;
+        
         const isCompleting = !(h.completed && h.lastCompletedDate === TODAY);
+        const currentHistory = h.history || []; 
+        
+        //  Agrega o quita la fecha actual del historial
+        const newHistory = isCompleting 
+          ? [...new Set([...currentHistory, TODAY])] 
+          : currentHistory.filter(date => date !== TODAY);
+
         return {
           ...h,
           completed: isCompleting,
           lastCompletedDate: isCompleting ? TODAY : null,
           streak: isCompleting ? h.streak + 1 : Math.max(0, h.streak - 1),
+          history: newHistory, // nuevo historial
         };
       })
     );

@@ -6,7 +6,8 @@ export const validateName = (name: string): string | null => {
 
 export const validatePassword = (password: string): string | null => {
   if (!password) return "La contraseña es obligatoria";
-  if (password.length < 4) return "La contraseña debe tener al menos 4 caracteres";
+  if (password.includes(" ")) return "La contraseña no puede contener espacios";
+  if (password.length < 6) return "La contraseña debe tener al menos 6 caracteres";
   return null;
 };
 
