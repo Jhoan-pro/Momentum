@@ -1,117 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FiTarget,
-  FiTrendingUp,
-  FiCheckCircle,
-  FiPlus,
-  FiLogOut,
-  FiZap,
-  FiCircle,
-  FiTrash2,
-  FiEdit2,
-  FiCheck,
-  FiX,
+  FiTarget, FiTrendingUp, FiCheckCircle, FiPlus, FiLogOut,
+  FiZap, FiCircle, FiTrash2, FiEdit2, FiCheck, FiX,
 } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
+import { useHabits } from "../context/HabitsContext";
+import { validateHabitName } from "../utils/validators";
+import { formatDateLong } from "../utils/helpers";
 
-interface Habit {
-  id: number;
-  name: string;
-  streak: number;
-  completed: boolean;
-  color: string;
-  lastCompletedDate: string | null;
-}
+export const Dashboard: React.FC = () => {
+  const { userData, logout } = useAuth();
+  const { habits, addHabit, deleteHabit, editHabit, toggleHabit, completedToday, maxStreak, weeklyRate } = useHabits();
 
-const COLORS = ["#34d399", "#22d3ee", "#a78bfa", "#f97316", "#f472b6", "#60a5fa"];
-const TODAY = new Date().toISOString().split("T")[0];
-
-const loadHabits = (): Habit[] => {
-  try {
-    return JSON.parse(localStorage.getItem("habits") ?? "[]");
-  } catch {
-    return [];
-  }
-};
-
-const saveHabits = (habits: Habit[]) => {
-  localStorage.setItem("habits", JSON.stringify(habits));
-};
-
-export const Home: React.FC = () => {
-  const [habits, setHabits] = useState<Habit[]>(loadHabits);
   const [showInput, setShowInput] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
+  const [inputError, setInputError] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState("");
+
   const navigate = useNavigate();
+  const firstName = userData?.name?.split(" ")[0] ?? "Usuario";
 
-  const userData = JSON.parse(localStorage.getItem("user_data") ?? "{}");
-  const firstName = userData.name?.split(" ")[0] ?? "Usuario";
-
-  useEffect(() => {
-    saveHabits(habits);
-  }, [habits]);
-
-  const completedToday = habits.filter((h) => h.completed && h.lastCompletedDate === TODAY).length;
-  const maxStreak = habits.length > 0 ? Math.max(...habits.map((h) => h.streak), 0) : 0;
-  const weeklyRate = habits.length > 0 ? Math.round((completedToday / habits.length) * 100) : 0;
-
-  const toggleHabit = (id: number) => {
-    setHabits((prev) =>
-      prev.map((h) => {
-        if (h.id !== id) return h;
-        const isCompleting = !(h.completed && h.lastCompletedDate === TODAY);
-        return {
-          ...h,
-          completed: isCompleting,
-          lastCompletedDate: isCompleting ? TODAY : null,
-          streak: isCompleting ? h.streak + 1 : Math.max(0, h.streak - 1),
-        };
-      })
-    );
-  };
-
-  const addHabit = () => {
-    if (!newHabitName.trim()) return;
-    setHabits((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: newHabitName.trim(),
-        streak: 0,
-        completed: false,
-        color: COLORS[prev.length % COLORS.length],
-        lastCompletedDate: null,
-      },
-    ]);
+  const handleAddHabit = () => {
+    const err = validateHabitName(newHabitName);
+    if (err) return setInputError(err);
+    addHabit(newHabitName);
     setNewHabitName("");
+    setInputError("");
     setShowInput(false);
   };
 
-  const deleteHabit = (id: number) => {
-    setHabits((prev) => prev.filter((h) => h.id !== id));
-  };
-
-  const startEdit = (habit: Habit) => {
-    setEditingId(habit.id);
-    setEditingName(habit.name);
+  const startEdit = (id: number, name: string) => {
+    setEditingId(id);
+    setEditingName(name);
   };
 
   const confirmEdit = (id: number) => {
-    if (!editingName.trim()) return;
-    setHabits((prev) =>
-      prev.map((h) => (h.id === id ? { ...h, name: editingName.trim() } : h))
-    );
+    const err = validateHabitName(editingName);
+    if (err) return;
+    editHabit(id, editingName);
     setEditingId(null);
-    setEditingName("");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    logout();
     navigate("/");
   };
+
+  const TODAY = new Date().toISOString().split("T")[0];
 
   const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
   const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } };
@@ -131,8 +69,7 @@ export const Home: React.FC = () => {
         >
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300 backdrop-blur-md mb-3">
-              <FiTarget className="text-cyan-400" />
-              Momentum
+              <FiTarget className="text-cyan-400" /> Momentum
             </div>
             <h1 className="text-3xl font-bold">
               Hola,{" "}
@@ -156,8 +93,7 @@ export const Home: React.FC = () => {
             onClick={handleLogout}
             className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-300 backdrop-blur-md transition hover:bg-white/10"
           >
-            <FiLogOut />
-            Salir
+            <FiLogOut /> Salir
           </motion.button>
         </motion.div>
 
@@ -170,24 +106,10 @@ export const Home: React.FC = () => {
         >
           {[
             { icon: "🔥", value: maxStreak, label: "Mejor racha", color: "text-orange-400" },
-            {
-              icon: <FiCheckCircle />,
-              value: `${completedToday}/${habits.length}`,
-              label: "Hoy completados",
-              color: "text-emerald-400",
-            },
-            {
-              icon: <FiTrendingUp />,
-              value: `${weeklyRate}%`,
-              label: "Completado hoy",
-              color: "text-cyan-400",
-            },
+            { icon: <FiCheckCircle />, value: `${completedToday}/${habits.length}`, label: "Hoy completados", color: "text-emerald-400" },
+            { icon: <FiTrendingUp />, value: `${weeklyRate}%`, label: "Completado hoy", color: "text-cyan-400" },
           ].map((stat, i) => (
-            <motion.div
-              key={i}
-              variants={item}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
-            >
+            <motion.div key={i} variants={item} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
               <div className={`text-xl mb-2 ${stat.color}`}>{stat.icon}</div>
               <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
               <div className="text-xs text-slate-400 mt-0.5">{stat.label}</div>
@@ -195,26 +117,16 @@ export const Home: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* Habits list */}
+        {/* List header */}
         {habits.length > 0 && (
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-200">Hábitos de hoy</h2>
-            <span className="text-xs text-slate-500">
-              {new Date().toLocaleDateString("es-CO", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
-            </span>
+            <span className="text-xs text-slate-500">{formatDateLong(new Date())}</span>
           </div>
         )}
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="flex flex-col gap-3 mb-5"
-        >
+        {/* Habits */}
+        <motion.div variants={container} initial="hidden" animate="show" className="flex flex-col gap-3 mb-5">
           <AnimatePresence>
             {habits.map((habit) => {
               const isCompletedToday = habit.completed && habit.lastCompletedDate === TODAY;
@@ -229,10 +141,7 @@ export const Home: React.FC = () => {
                   className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
                 >
                   <div className="flex items-center gap-3">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ background: habit.color }}
-                    />
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: habit.color }} />
 
                     <div className="flex-1 min-w-0">
                       {isEditing ? (
@@ -247,12 +156,8 @@ export const Home: React.FC = () => {
                             }}
                             className="flex-1 bg-transparent text-sm text-white outline-none border-b border-white/20 pb-0.5"
                           />
-                          <button onClick={() => confirmEdit(habit.id)} className="text-emerald-400 hover:text-emerald-300">
-                            <FiCheck size={14} />
-                          </button>
-                          <button onClick={() => setEditingId(null)} className="text-slate-400 hover:text-slate-300">
-                            <FiX size={14} />
-                          </button>
+                          <button onClick={() => confirmEdit(habit.id)} className="text-emerald-400 hover:text-emerald-300"><FiCheck size={14} /></button>
+                          <button onClick={() => setEditingId(null)} className="text-slate-400 hover:text-slate-300"><FiX size={14} /></button>
                         </div>
                       ) : (
                         <p className={`text-sm font-medium truncate ${isCompletedToday ? "line-through text-slate-400" : ""}`}>
@@ -272,28 +177,24 @@ export const Home: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
                     {!isEditing && (
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => startEdit(habit)}
+                          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                          onClick={() => startEdit(habit.id, habit.name)}
                           className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 transition"
                         >
                           <FiEdit2 size={13} />
                         </motion.button>
                         <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                           onClick={() => deleteHabit(habit.id)}
                           className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition"
                         >
                           <FiTrash2 size={13} />
                         </motion.button>
                         <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                           onClick={() => toggleHabit(habit.id)}
                           className="w-8 h-8 rounded-xl flex items-center justify-center transition"
                           style={{
@@ -318,7 +219,7 @@ export const Home: React.FC = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="rounded-2xl border border-dashed border-white/15 bg-white/3 p-10 text-center mb-5"
+            className="rounded-2xl border border-dashed border-white/15 p-10 text-center mb-5"
           >
             <div className="text-4xl mb-3">🎯</div>
             <p className="text-slate-300 font-medium text-sm">No tienes hábitos todavía</p>
@@ -326,7 +227,7 @@ export const Home: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Add habit input */}
+        {/* Add input */}
         <AnimatePresence>
           {showInput && (
             <motion.div
@@ -339,27 +240,19 @@ export const Home: React.FC = () => {
                 autoFocus
                 type="text"
                 value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addHabit();
-                  if (e.key === "Escape") setShowInput(false);
-                }}
+                onChange={(e) => { setNewHabitName(e.target.value); setInputError(""); }}
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") setShowInput(false); }}
                 placeholder="Nombre del nuevo hábito..."
                 className="w-full bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
               />
+              {inputError && <p className="text-xs text-red-400 mt-2">{inputError}</p>}
               <div className="flex gap-2 mt-3">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={addHabit}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 py-2 text-xs font-semibold"
-                >
+                <motion.button whileTap={{ scale: 0.97 }} onClick={handleAddHabit}
+                  className="flex-1 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 py-2 text-xs font-semibold">
                   Agregar
                 </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => { setShowInput(false); setNewHabitName(""); }}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-300"
-                >
+                <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowInput(false); setNewHabitName(""); setInputError(""); }}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-300">
                   Cancelar
                 </motion.button>
               </div>
@@ -369,22 +262,17 @@ export const Home: React.FC = () => {
 
         {!showInput && (
           <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
             onClick={() => setShowInput(true)}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-cyan-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:from-violet-400 hover:to-cyan-400"
           >
-            <FiPlus />
-            Agregar nuevo hábito
+            <FiPlus /> Agregar nuevo hábito
           </motion.button>
         )}
 
-        {/* Motivational footer */}
         {habits.length > 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
             className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md flex items-center gap-3"
           >
             <FiZap className="text-yellow-400 text-xl flex-shrink-0" />
