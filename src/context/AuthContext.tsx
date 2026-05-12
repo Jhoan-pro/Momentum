@@ -17,7 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userData, setUserData, removeUserData] = useLocalStorage<UserData | null>("user_data", null);
+const [userData, setUserData] = useLocalStorage<UserData | null>("user_data", null);
   const [isLoggedIn, setIsLoggedIn, removeIsLoggedIn] = useLocalStorage<boolean>("isLoggedIn", false);
 
   const register = (name: string, password: string) => {
