@@ -15,38 +15,37 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../src/context/AuthContext";
 import { validateName, validatePassword } from "../src/utils/validators";
 
-export default function Login() {
+export default function CreateAccount() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login } = useAuth();
+  const { register } = useAuth();
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     setError("");
 
-    // Validaciones antes de intentar login
+    // Validaciones antes de registrar
     const nameErr = validateName(name);
     if (nameErr) return setError(nameErr);
     const passErr = validatePassword(password);
     if (passErr) return setError(passErr);
 
     setLoading(true);
-    const ok = await login(name, password);
+    const ok = await register(name, password);
     setLoading(false);
 
     if (ok) {
-      // Reemplaza la ruta para que no pueda volver al login con el botón atrás
-      router.replace("/home");
+      // Registro exitoso — va al login para que inicie sesión
+      router.replace("/");
     } else {
-      setError("Usuario o contraseña incorrectos. Si no tienes cuenta, crea una.");
+      setError("Ya existe una cuenta con ese nombre. Elige otro.");
     }
   };
 
   return (
-    // KeyboardAvoidingView sube el contenido cuando el teclado aparece
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -58,16 +57,16 @@ export default function Login() {
         {/* Logo e ícono */}
         <View style={styles.logoContainer}>
           <View style={styles.logoIcon}>
-            <Ionicons name="radio-button-on" size={32} color="white" />
+            <Ionicons name="shield-checkmark" size={32} color="white" />
           </View>
           <Text style={styles.appName}>Momentum</Text>
-          <Text style={styles.appSubtitle}>Construye hábitos que transforman tu vida</Text>
+          <Text style={styles.appSubtitle}>Crea tu cuenta y empieza hoy</Text>
         </View>
 
         {/* Tarjeta del formulario */}
         <View style={styles.card}>
-          <Text style={styles.title}>Bienvenido de nuevo</Text>
-          <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+          <Text style={styles.title}>Crear cuenta</Text>
+          <Text style={styles.subtitle}>Regístrate para comenzar a construir hábitos</Text>
 
           {/* Campo nombre */}
           <View style={styles.inputGroup}>
@@ -94,7 +93,7 @@ export default function Login() {
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Ingresa tu contraseña"
+                placeholder="Crea una contraseña"
                 placeholderTextColor="#475569"
                 secureTextEntry={!showPassword}
               />
@@ -108,6 +107,14 @@ export default function Login() {
             </View>
           </View>
 
+          {/* Info box */}
+          <View style={styles.infoBox}>
+            <Ionicons name="checkmark-circle" size={16} color="#34d399" />
+            <Text style={styles.infoText}>
+              Tu cuenta quedará lista en segundos. Podrás iniciar sesión y empezar a registrar tus hábitos diarios.
+            </Text>
+          </View>
+
           {/* Mensaje de error */}
           {error ? (
             <View style={styles.errorBox}>
@@ -116,10 +123,10 @@ export default function Login() {
             </View>
           ) : null}
 
-          {/* Botón de login */}
+          {/* Botón registrar */}
           <TouchableOpacity
             style={styles.button}
-            onPress={handleLogin}
+            onPress={handleRegister}
             disabled={loading}
             activeOpacity={0.8}
           >
@@ -127,18 +134,18 @@ export default function Login() {
               <ActivityIndicator color="white" />
             ) : (
               <>
-                <Text style={styles.buttonText}>Entrar</Text>
+                <Text style={styles.buttonText}>Registrar cuenta</Text>
                 <Ionicons name="arrow-forward" size={18} color="white" />
               </>
             )}
           </TouchableOpacity>
 
-          {/* Link a crear cuenta */}
+          {/* Link a login */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-            <Link href="/create-account" asChild>
+            <Text style={styles.footerText}>¿Ya tienes cuenta? </Text>
+            <Link href="/" asChild>
               <TouchableOpacity>
-                <Text style={styles.footerLink}>Crea una aquí</Text>
+                <Text style={styles.footerLink}>Volver al login</Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -167,16 +174,14 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: "#0e7490",
+    backgroundColor: "#7c3aed",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 12,
-    // Sombra en iOS
-    shadowColor: "#22d3ee",
+    shadowColor: "#a78bfa",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    // Sombra en Android
     elevation: 8,
   },
   appName: {
@@ -237,6 +242,24 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 14,
   },
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    backgroundColor: "rgba(52,211,153,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(52,211,153,0.2)",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  infoText: {
+    color: "#94a3b8",
+    fontSize: 12,
+    flex: 1,
+    lineHeight: 18,
+  },
   errorBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -259,12 +282,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#0e7490",
+    backgroundColor: "#7c3aed",
     borderRadius: 16,
     paddingVertical: 14,
     marginTop: 8,
-    // Sombra
-    shadowColor: "#22d3ee",
+    shadowColor: "#a78bfa",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
